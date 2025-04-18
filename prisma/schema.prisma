@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                BigInt     @id @default(autoincrement())
+  first_name        String?    @db.VarChar(255)
+  last_name         String?    @db.VarChar(255)
+  email             String     @unique @db.VarChar(255)
+  password          String?    @db.VarChar(255)
+  image             String?    @db.VarChar(255)
+  created_by        String     @db.VarChar(255)
+  created_ts        DateTime   @db.Timestamp(6) @default(now())
+  modified_by       String?    @db.VarChar(255)
+  modified_ts       DateTime   @db.Timestamp(6) @default(now())
+  login_ts          DateTime?  @default(now()) @db.Timestamp(6)
+  verification_token String?
+  is_active         Boolean    @default(false)
+
+  user_credentials  UserCredentials[]
+  projects          Project[]
+
+  Session Session[]
+
+  Agent Agent[]
+
+  ApiKey ApiKey[]
+}
+
+model UserCredentials {
+  id          BigInt    @id @default(autoincrement())
+  user_id     BigInt
+  credentials Json      @db.JsonB  
+  created_by  String     @db.VarChar(255)
+  created_ts  DateTime   @default(now()) @db.Timestamp(6)
+  modified_by String?    @db.VarChar(255)
+  modified_ts DateTime   @default(now()) @db.Timestamp(6)
+
+  user        User       @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  Agent Agent[]
+}
+
+model Project {
+  id          BigInt    @id @default(autoincrement())
+  user_id     BigInt
+  project_name String?   @db.VarChar(255)
+  db_credential Json?     @db.JsonB 
+  selected_tables Json?     @db.JsonB 
+  table_relationships Json?     @db.JsonB 
+  connectionStatus String   @default("disconnected")     
+  created_by  String     @db.VarChar(255)
+  created_ts  DateTime   @default(now()) @db.Timestamp(6)
+  modified_by String?    @db.VarChar(255)
+  modified_ts DateTime   @default(now()) @db.Timestamp(6)
+
+  user        User       @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  Agent Agent[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       BigInt
+  user         User     @relation(fields: [userId], references: [id])
+  sessionToken String   @unique
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+}
+model Agent {
+  id              BigInt     @id @default(autoincrement())
+  user_id         BigInt
+  project_id      BigInt
+  credential_id   BigInt
+  agent_name      String     @db.VarChar(255)
+  is_active       Boolean    @default(false)
+  created_by      String     @db.VarChar(255)
+  created_ts      DateTime   @default(now()) @db.Timestamp(6)
+  modified_by     String?    @db.VarChar(255)
+  modified_ts     DateTime   @default(now()) @db.Timestamp(6)
+
+  user            User       @relation(fields: [user_id], references: [id])
+  project         Project    @relation(fields: [project_id], references: [id])
+  credential      UserCredentials @relation(fields: [credential_id], references: [id])
+
+  @@index([user_id])
+  @@index([project_id])
+  @@index([credential_id])
+}
+
+model ApiKey {
+  id          BigInt    @id @default(autoincrement())
+  user_id     BigInt
+  provider    String    @db.VarChar(50)
+  apiKey      String    @db.VarChar(255)
+  created_by  String    @db.VarChar(255)
+  created_ts  DateTime  @default(now()) @db.Timestamp(6)
+  modified_by String?   @db.VarChar(255)
+  modified_ts DateTime  @default(now()) @db.Timestamp(6)
+
+  user        User      @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+}
