@@ -64,6 +64,7 @@ model Project {
 
   @@index([user_id])
   Agent Agent[]
+  BotMessage BotMessage[]
 }
 
 model Session {
@@ -96,6 +97,7 @@ model Agent {
   @@index([user_id])
   @@index([project_id])
   @@index([credential_id])
+  BotMessage BotMessage[]
 }
 
 model ApiKey {
@@ -111,4 +113,22 @@ model ApiKey {
   user        User      @relation(fields: [user_id], references: [id])
 
   @@index([user_id])
+}
+
+model BotMessage {
+  id          BigInt    @id @default(autoincrement())
+  agent_id    BigInt
+  project_id  BigInt
+  chat_id     String    @db.VarChar(255)  // Telegram chat ID
+  message     String    @db.Text          // Message content
+  direction   String    @db.VarChar(50)   // 'inbound' or 'outbound'
+  raw_data    Json      @db.JsonB         // Raw message data
+  created_ts  DateTime  @default(now())   @db.Timestamp(6)
+  
+  agent       Agent     @relation(fields: [agent_id], references: [id])
+  project     Project   @relation(fields: [project_id], references: [id])
+  
+  @@index([agent_id])
+  @@index([project_id])
+  @@index([chat_id])
 }

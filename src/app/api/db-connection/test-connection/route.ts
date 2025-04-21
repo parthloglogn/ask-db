@@ -1,34 +1,38 @@
-import { NextResponse } from 'next/server';
-import { Client } from 'pg';
+// app/api/db-connection/test-connection/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { connectToDatabase } from '@/utils/databaseConnectors';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { db_config } = await req.json();
+    const { db_type, db_config } = await req.json();
     
-    const client = new Client({
-      database: db_config.dbname,
-      user: db_config.user,
-      password: db_config.password,
-      host: db_config.host,
-      port: parseInt(db_config.port)
-    });
+    // Validate input
+    if (!db_type || !db_config) {
+      return NextResponse.json(
+        { error: 'Missing required parameters' },
+        { status: 400 }
+      );
+    }
 
-    await client.connect();
-    await client.query('SELECT 1');
-    await client.end();
+    // Test the connection
+    const connection = await connectToDatabase(db_type, db_config);
+    
+    if (connection.error) {
+      return NextResponse.json(
+        { success: false, message: connection.error },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Connection successful!' 
-    });
+    return NextResponse.json(
+      { success: true, message: 'Connection successful' },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Connection test failed:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        message: error instanceof Error ? error.message : 'Connection failed' 
-      },
-      { status: 400 }
+      { success: false, message: error instanceof Error ? error.message : 'Connection failed' },
+      { status: 500 }
     );
   }
 }
