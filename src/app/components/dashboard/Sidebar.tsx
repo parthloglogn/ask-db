@@ -30,7 +30,7 @@ export default function SidebarItem({
 }) {
   const Icon = icons[icon];
 
-  const baseClasses = 'w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-all';
+  const baseClasses = ' w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-200 hover:scale-105 active:scale-95 transform shadow-sm';
   const activeClasses = 'bg-gray-800 text-white';
 
   return (
